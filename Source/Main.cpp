@@ -8,6 +8,7 @@
 
 #include <JuceHeader.h>
 #include "MainComponent.h"
+#include "OSCMonitor.h"
 
 //==============================================================================
 class SimpleStringAppApplication  : public juce::JUCEApplication
@@ -26,13 +27,15 @@ public:
         // This method is where you should put your application's initialisation code..
 
         mainWindow.reset (new MainWindow (getApplicationName()));
+        oscWindow.reset (new OSCWindow("OSCMonitor", new MainContentComponent, *this));
     }
-
+    
     void shutdown() override
     {
         // Add your application's shutdown code here..
 
         mainWindow = nullptr; // (deletes our window)
+        oscWindow = nullptr;
     }
 
     //==============================================================================
@@ -96,8 +99,44 @@ public:
         JUCE_DECLARE_NON_COPYABLE_WITH_LEAK_DETECTOR (MainWindow)
     };
 
+    class OSCWindow : public juce::DocumentWindow
+    {
+    public:
+        OSCWindow(const juce::String& name, juce::Component* c, JUCEApplication& a)
+            : DocumentWindow(name, juce::Desktop::getInstance().getDefaultLookAndFeel()
+                .findColour(ResizableWindow::backgroundColourId),
+                juce::DocumentWindow::allButtons),
+            app(a)
+        {
+            setUsingNativeTitleBar(true);
+            setContentOwned(c, true);
+
+#if JUCE_ANDROID || JUCE_IOS
+            setFullScreen(true);
+#else
+            setResizable(true, false);
+            setResizeLimits(300, 250, 10000, 10000);
+            centreWithSize(getWidth(), getHeight());
+#endif
+
+            setVisible(true);
+        }
+
+        void closeButtonPressed() override
+        {
+            app.systemRequestedQuit();
+        }
+
+    private:
+        JUCEApplication& app;
+
+        //==============================================================================
+        JUCE_DECLARE_NON_COPYABLE_WITH_LEAK_DETECTOR(OSCWindow)
+    };
+
 private:
     std::unique_ptr<MainWindow> mainWindow;
+    std::unique_ptr<OSCWindow> oscWindow;
 };
 
 //==============================================================================

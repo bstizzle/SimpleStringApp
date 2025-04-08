@@ -10,10 +10,12 @@
 
 #include <JuceHeader.h>
 #include "SimpleString.h"
+#include "OSCMonitor.h"
 
 //==============================================================================
 SimpleString::SimpleString (NamedValueSet& parameters, double k) : k (k)
 {
+
     // Initialise member variables using the parameter set
     L = *parameters.getVarPointer ("L");
     rho = *parameters.getVarPointer ("rho");
@@ -189,4 +191,10 @@ void SimpleString::mouseDown (const MouseEvent& e)
     
     // Activate the excitation flag to be used by the MainComponent to excite the string
     excitationFlag = true;
+}
+
+void SimpleString::strum(float velocity)
+{
+    if (velocity >= 1)
+        excitationFlag = true;
 }
